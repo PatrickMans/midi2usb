@@ -58,7 +58,7 @@
 // controlVal == (0-127)
 //////////////////////////
 
-//Workaround for Arduino MIDI library v4.0 compatibility
+// Workaround for Arduino MIDI library v4.0 compatibility
 #ifdef USE_SERIAL_PORT
 #define _MIDI_SERIAL_PORT USE_SERIAL_PORT
 #else
@@ -80,7 +80,7 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
-//define vu chars
+// define vu-bar chars
 byte VU0[8] = 
 {
  B00000,
@@ -151,6 +151,8 @@ byte VU80[8] =
 
 // Display a VU-like meter per channel on the second display line.
 // Only for note-on messages
+// Chan 1 bar is at display column 0!!
+
 void VU(int CHAN)
 { 
 // it seems that displaying a VU meter per channel is taking
@@ -182,7 +184,7 @@ void ResetVu(int CHAN)
  lcd.write(1);
 }
 
-//Write text on the top line of the display
+// Write text on the top line of the display
 void WriteTopLine(String TEXT) {
 lcd.setCursor(0,0);
 lcd.print(TEXT);  
@@ -196,8 +198,6 @@ lcd.setCursor(0,1);
 lcd.print(CLRSTRING);  
 lcd.setCursor(1,1);
 lcd.print(TEXT);
-//lcd.setCursor(0,1);
-//lcd.print(CLRSTRING); 
 }
 
 // Initial setup of the VU bar line (all 0's)
@@ -205,8 +205,6 @@ void InitVUBar() {
 for (int i=0; i <= 15; i++){
       lcd.setCursor(i,1);
       lcd.write(1);
-//      lcd.setCursor(i,1);
-//      lcd.write(byte(0));
       delay(10);
    }  
 }
