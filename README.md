@@ -15,5 +15,5 @@ Needed for this project:
 - USB Host
 - LCD display (here 16x2 is used)
 
-
+The LCD is not necessary to run the converter, but it is a nice addon to the box.
 
