@@ -145,14 +145,9 @@ byte VU80[8] =
 };
 
 
-// Display a VU-like meter per channel on the second display line.
-// Only for note-on messages
+
 void VU(int CHAN)
 { 
-// it seems that displaying a VU meter per channel is taking
-// too much of the system timing.
-// So only the 'full bar' is displayed.
-
  int x = CHAN-1;
  //lcd.setCursor(x,1);
  //lcd.write(2);
@@ -168,24 +163,23 @@ void VU(int CHAN)
  //delay(50);
  // lcd.setCursor(x,1);
  //lcd.write(1);
- }
+ 
+// lcd.setCursor(x,1);
+// lcd.write(byte(0));
+}
 
-// When a channel receives a note-off message, the VU bar is set to zero.
 void ResetVu(int CHAN)
 { 
  int x = CHAN-1;
- lcd.setCursor(x,1);
+  lcd.setCursor(x,1);
  lcd.write(1);
 }
 
-//Write text on the top line of the display
 void WriteTopLine(String TEXT) {
 lcd.setCursor(0,0);
 lcd.print(TEXT);  
 }
 
-// Write text on the bottom line of the display
-// after clearing the line
 void WriteBotLine(String TEXT) {
 String CLRSTRING = "                ";
 lcd.setCursor(0,1);
@@ -196,7 +190,6 @@ lcd.print(TEXT);
 //lcd.print(CLRSTRING); 
 }
 
-// Initial setup of the VU bar line (all 0's)
 void InitVUBar() {
 for (int i=0; i <= 15; i++){
       lcd.setCursor(i,1);
@@ -207,8 +200,6 @@ for (int i=0; i <= 15; i++){
    }  
 }
 
-// When midi data is received, blink an * sign on the top-right corner
-// Is destroying the midi timing, so not used
 void Blink() {
   lcd.setCursor(13,0);
   lcd.print("[*]");
@@ -217,7 +208,6 @@ void Blink() {
   lcd.print("[ ]");
 }
 
-// Initial screen after welcome message 
 void ClearScreen() {
   String CLRSTRING = "                ";
   WriteBotLine(CLRSTRING);
@@ -254,7 +244,8 @@ void SendNoteOn(byte CHAN, byte NOTE, byte VEL) {
    VU(CHAN);
   }
 
-// Sends NoteOff command
+
+// Sends NoteOff
 void SendNoteOff(byte CHAN, byte NOTE, byte VEL) {
 //  MIDI.sendNoteOff(NOTE, VEL, CHAN);
    uint8_t msg[4];
@@ -262,16 +253,16 @@ void SendNoteOff(byte CHAN, byte NOTE, byte VEL) {
    msg[1] = NOTE;
    msg[2] = VEL;
    Midi.SendData(msg, 0);
-   ResetVu(CHAN);
+  ResetVu(CHAN);
+//    Blink();
 }
-
 // Sends Sysex message 
 void SendSysEx(byte ARRAY, byte SIZE) {
   MIDI.sendSysEx(SIZE, ARRAY, true);
 }
   
 void setup() {
-// Vu Bar character definition
+//Vu Bar character definition
 lcd.createChar(0,VU0);
 lcd.createChar(1,VU10);
 lcd.createChar(2,VU20);
@@ -279,24 +270,23 @@ lcd.createChar(3,VU40);
 lcd.createChar(4,VU60);
 lcd.createChar(5,VU80);
 
-// Welcome message
+//Welcome message
 lcd.begin(16, 2);
 lcd.print("  Midi2Usb 1.6  "); 
 lcd.setCursor(0,1);
 lcd.print(" (c)Patrick Mans");
 delay(4000);
 
-// Check if USB host shield is available
 if (Usb.Init() == -1) {
     WriteBotLine("USB init error");
- //   while(1); //Halt if not...
+ //   while(1);
    }
 
-// Init screen
 ClearScreen();
 InitVUBar();
 
-// Handles for incoming midi messages
+ 
+//Handles for incoming midi
  MIDI.setHandleControlChange(SendCC);
  MIDI.setHandleProgramChange(SendPP);
  MIDI.setHandleNoteOn(SendNoteOn);
@@ -304,9 +294,11 @@ InitVUBar();
  MIDI.setHandleSystemExclusive(SendSysEx);
  MIDI.begin();
 
- // Workaround for non UHS2.0 Shield 
+ //Workaround for non UHS2.0 Shield 
  pinMode(7,OUTPUT);
  digitalWrite(7,HIGH);
+
+
 }
 
 void loop() {
