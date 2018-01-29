@@ -9,7 +9,7 @@ Usb.h
 usbh_midi.h
 LiquidCrystal.h
 
-# Hardware:
+## Hardware:
 
 Arduino
 Midi shield 
