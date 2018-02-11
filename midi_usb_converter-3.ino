@@ -68,8 +68,8 @@
 USB  Usb;
 USBH_MIDI  Midi(&Usb);
 
-byte NoteOn = 0x80;
-byte NoteOff = 0x90;
+byte NoteOn = 0x90;
+byte NoteOff = 0x80;
 byte ControlChange = 0xB0;
 byte ProgramChange = 0xC0;
 
@@ -246,14 +246,18 @@ void SendPP(byte CHAN, byte PRG) {
   }
 
 // Sends NoteOn command 
-void SendNoteOn(byte CHAN, byte NOTE, byte VEL) {
+void SendNoteOn(uint8_t CHAN, uint8_t NOTE, uint8_t VEL) {
 //  MIDI.sendNoteOn(NOTE, VEL, CHAN);
    uint8_t msg[4];
    msg[0] = NoteOn + CHAN;
    msg[1] = NOTE;
    msg[2] = VEL;
    Midi.SendData(msg, 0);
-   VU(CHAN);
+//   VU(CHAN);
+   String NS = String(msg[0]);
+   String NOTS = String(msg[1]);
+   String VELS = String(msg[2]);
+   WriteBotLine(NS + "-" + NOTS + "-" + VELS);
   }
 
 // Sends NoteOff command
@@ -264,9 +268,16 @@ void SendNoteOff(byte CHAN, byte NOTE, byte VEL) {
    msg[1] = NOTE;
    msg[2] = VEL;
    Midi.SendData(msg, 0);
-   ResetVu(CHAN);
+//   ResetVu(CHAN);
 }
 
+void NewNoteOn() {
+    unsigned long t1;
+  uint8_t msg[4];
+         msg[1] = MIDI.getData1();
+         msg[2] = MIDI.getData2();
+         Midi.SendData(msg, 0);
+}
 // Sends Sysex message 
 void SendSysEx(byte ARRAY, byte SIZE) {
   MIDI.sendSysEx(SIZE, ARRAY, true);
@@ -291,26 +302,46 @@ delay(4000);
 // Check if USB host shield is available
 if (Usb.Init() == -1) {
     WriteBotLine("USB init error");
- //   while(1); //Halt if not...
+    //while(1); //Halt if not...
+     delay( 5000 );
    }
+delay( 200 );
 
 // Init screen
 ClearScreen();
 InitVUBar();
-
+/*
 // Handles for incoming midi messages
  MIDI.setHandleControlChange(SendCC);
  MIDI.setHandleProgramChange(SendPP);
- MIDI.setHandleNoteOn(SendNoteOn);
+ MIDI.setHandleNoteOn(NewNoteOn);
  MIDI.setHandleNoteOff(SendNoteOff);
  MIDI.setHandleSystemExclusive(SendSysEx);
- MIDI.begin();
+ */
+ MIDI.begin(MIDI_CHANNEL_OMNI);
 
  // Workaround for non UHS2.0 Shield 
  pinMode(7,OUTPUT);
  digitalWrite(7,HIGH);
 }
 
-void loop() {
-MIDI.read(MIDI_CHANNEL_OMNI);
+void loop1() {
+      MIDI.read(MIDI_CHANNEL_OMNI);
 }
+
+void loop() {
+    unsigned long t1;
+  uint8_t msg[4];
+  if (MIDI.read()) {
+       msg[0] = MIDI.getType();
+       if( msg[0] == 0xf0 ) { //SysEX
+         //TODO
+         //SysEx implementation is not yet.
+       }else{
+         msg[1] = MIDI.getData1();
+         msg[2] = MIDI.getData2();
+         Midi.SendData(msg, 0);
+       }
+    }
+  }
+
